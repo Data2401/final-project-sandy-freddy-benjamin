@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
@@ -23,11 +25,15 @@ library(ggplot2)
 
 ```{r}
 library(readxl)
-gaming_data <- gaming_mental_health_10M_40features_csv
-glimpse(gaming_data)
-read.csv("gaming_mentalhealth_10M_40features.csv") # we could not get read.csv to work so we will try again at a later time. For now we brute forced it with a manual import.
+#gaming_data <- gaming_mental_health_10M_40features_csv
+#glimpse(gaming_data)
+#read.csv("gaming_mentalhealth_10M_40features.csv") # we could not get read.csv to work so we will try again at a later time. For now we brute forced it with a manual import.
 # The link to our data for now: https://www.kaggle.com/datasets/sharmajicoder/gaming-and-mental-health?resource=download
+
+#save(gaming_data, file = "smallerdata.Rdata")
+load("smallerdata.Rdata")
 ```
+
 ```{r}
 #cleaned it a bit to make my computer run more smoothly
 gaming_data %>%
