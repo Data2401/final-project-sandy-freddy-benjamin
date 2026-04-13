@@ -1,0 +1,269 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+
+
+```{r}
+library(readxl)
+#gaming_data <- gaming_mental_health_10M_40features_csv
+#glimpse(gaming_data)
+#read.csv("gaming_mentalhealth_10M_40features.csv") # we could not get read.csv to work so we will try again at a later time. For now we brute forced it with a manual import.
+# The link to our data for now: https://www.kaggle.com/datasets/sharmajicoder/gaming-and-mental-health?resource=download
+
+#save(gaming_data, file = "smallerdata.Rdata")
+load("smallerdata.Rdata")
+
+#This data is synthetic data about gaming and mental health with a few more categories that pertain to general life and well being. 
+```
+
+```{r}
+
+#cleaned it a bit to make my computer run more smoothly
+gaming_data %>%
+  summarise(across(everything(), ~ sum(is.na(.))))
+
+summary(gaming_data$Hours_Played)
+summary(gaming_data$Addiction_Level)
+
+gaming_data %>%
+  summarise(duplicates = sum(duplicated(.)))
+
+#make my sample smaller
+gaming <- gaming_data %>%
+  sample_n(5000)
+```
+
+```{r}
+#The Question asked here is how is addiction and hours played correlated and if there is any "liars" that have more hours played than their addiction level suggest.
+#Checking addiction levels against hours played 
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = addiction_level)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    title = "Addiction Level vs Hours Played",
+    x = "Hours Played",
+    y = "Self-Reported Addiction Level"
+  )
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    title = "Addiction Level vs Hours Played",
+    x = "Hours Played",
+    y = "Self-Reported Addiction Level"
+  )
+```
+
+```{r}
+# checking the correlation 
+cor(gaming_data$daily_gaming_hours, gaming_data$addiction_level, use = "complete.obs")
+cor(gaming$daily_gaming_hours, gaming$addiction_level, use = "complete.obs")
+
+```
+
+```{r}
+#checking "liars"
+gaming_data <- gaming_data %>%
+  mutate(
+    suspicious = case_when(
+      daily_gaming_hours > quantile(daily_gaming_hours, 0.75, na.rm = TRUE) &
+      addiction_level < quantile(addiction_level, 0.25, na.rm = TRUE) ~ "Underreporting",
+
+      daily_gaming_hours < quantile(daily_gaming_hours, 0.25, na.rm = TRUE) &
+      addiction_level > quantile(addiction_level, 0.75, na.rm = TRUE) ~ "Overreporting",
+
+      TRUE ~ "Consistent"
+    )
+  )
+gaming_data %>%
+  count(suspicious)
+
+```
+```{r}
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = addiction_level, color = suspicious)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    title = "Identifying Inconsistent Addiction Reporting",
+    x = "Daily Hours Played",
+    y = "Addiction Level",
+    color = "Classification"
+  )
+```
+
+```{r}
+#From this point on we check the mental well being and physical well being to see any connections 
+gaming_data <- gaming_data %>%
+  mutate(
+    mental_health_score = (stress_level + anxiety_score + depression_score) / 3
+  )
+```
+
+```{r}
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = mental_health_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Daily Gaming Hours vs Mental Health",
+    x = "Daily Gaming Hours",
+    y = "Mental Health Score"
+  )
+```
+
+```{r}
+cor(gaming_data$daily_gaming_hours, gaming_data$mental_health_score, use = "complete.obs")
+```
+
+```{r}
+# Stress
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = stress_level)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE)
+
+# Anxiety
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = anxiety_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE)
+
+# Depression
+ggplot(gaming_data, aes(x = daily_gaming_hours, y = depression_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+gaming_data <- gaming_data %>%
+  mutate(
+    gaming_group = case_when(
+      daily_gaming_hours < 2 ~ "Low",
+      daily_gaming_hours < 5 ~ "Moderate",
+      TRUE ~ "High"
+    )
+  )
+
+gaming_data %>%
+  group_by(gaming_group) %>%
+  summarise(
+    avg_stress = mean(stress_level, na.rm = TRUE),
+    avg_anxiety = mean(anxiety_score, na.rm = TRUE),
+    avg_depression = mean(depression_score, na.rm = TRUE)
+  )
+ggplot(gaming_data, aes(x = gaming_group, y = mental_health_score, fill = gaming_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Mental Health by Gaming Level",
+    x = "Gaming Level",
+    y = "Mental Health Score"
+  )
+
+```
+
+```{r}
+physical_data <- gaming_data %>%
+  select(daily_gaming_hours, bmi, exercise_hours, eye_strain_score, back_pain_score) %>%
+  drop_na()
+
+physical_data <- physical_data %>%
+  mutate(
+    physical_health_score = (bmi + eye_strain_score + back_pain_score) / 3
+  )
+```
+
+```{r}
+ggplot(physical_data, aes(x = daily_gaming_hours, y = bmi)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs BMI")
+ggplot(physical_data, aes(x = daily_gaming_hours, y = exercise_hours)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Exercise Hours")
+ggplot(physical_data, aes(x = daily_gaming_hours, y = eye_strain_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Eye Strain")
+ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Back Pain")
+
+```
+
+```{r}
+cor(physical_data$daily_gaming_hours, physical_data$bmi)
+cor(physical_data$daily_gaming_hours, physical_data$exercise_hours)
+cor(physical_data$daily_gaming_hours, physical_data$eye_strain_score)
+cor(physical_data$daily_gaming_hours, physical_data$back_pain_score)
+```
+
+```{r}
+physical_data <- physical_data %>%
+  mutate(
+    gaming_group = case_when(
+      daily_gaming_hours < 2 ~ "Low",
+      daily_gaming_hours < 5 ~ "Moderate",
+      TRUE ~ "High"
+    )
+  )
+physical_data %>%
+  group_by(gaming_group) %>%
+  summarise(
+    avg_bmi = mean(bmi),
+    avg_exercise = mean(exercise_hours),
+    avg_eye_strain = mean(eye_strain_score),
+    avg_back_pain = mean(back_pain_score)
+  )
+ggplot(physical_data, aes(x = gaming_group, y = eye_strain_score, fill = gaming_group)) +
+  geom_boxplot() +
+  labs(title = "Eye Strain by Gaming Level")
+```
+
+From here I will lower the sample size and see if it affects the charts
+```{r}
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    title = "Addiction Level vs Hours Played",
+    x = "Hours Played",
+    y = "Self-Reported Addiction Level"
+  )
+```
+```{r}
+gaming <- gaming %>%
+  mutate(
+    suspicious = case_when(
+      daily_gaming_hours > quantile(daily_gaming_hours, 0.75, na.rm = TRUE) &
+      addiction_level < quantile(addiction_level, 0.25, na.rm = TRUE) ~ "Underreporting",
+
+      daily_gaming_hours < quantile(daily_gaming_hours, 0.25, na.rm = TRUE) &
+      addiction_level > quantile(addiction_level, 0.75, na.rm = TRUE) ~ "Overreporting",
+
+      TRUE ~ "Consistent"
+    )
+  )
+gaming %>%
+  count(suspicious)
+```
+
