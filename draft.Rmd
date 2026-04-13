@@ -1,0 +1,71 @@
+---
+title: "draft"
+author: "Benjamin"
+date: "2026-04-13"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyverse)
+#Loading the db here. I got this name from downloading the zip. You guys should have this too.
+df <- read.csv("gaming_mental_health_10M_40features.csv")
+
+#created a sub dataset based on the variables we need. Use gaming_subdata from now on.
+gaming_subdata <- df %>%
+  select(age, gender, income, bmi, daily_gaming_hours, weekly_sessions, years_gaming, eye_strain_score, back_pain_score, sleep_hours, exercise_hours, happiness_score, aggression_score, loneliness_score, stress_level, anxiety_score, depression_score, social_interaction_score, addiction_level, toxic_exposure, violent_games_ratio, parental_supervision, microtransactions_spending, competitive_rank)
+```
+
+
+```{r}
+#Loading this here for workflow/organizational purposes
+head(gaming_subdata)
+summary(gaming_subdata)
+```
+```{r}
+#shows data based on age
+data_by_age <- gaming_subdata %>%  
+  mutate(age_group = case_when(
+    age < 18 ~ "Under 18",
+    age >= 18 & age <= 25 ~ "18-25",
+    age > 25 ~ "25+"
+  )) %>% 
+  group_by(age_group) %>% 
+  summarize(
+    avg_addiction = mean(addiction_level, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+ggplot(data_by_age, aes(x = age_group, y = avg_addiction)) +
+  geom_col() + labs(title = "Average Addiction by Age",
+                    x = "Age",
+                    y = "Average Addiction Score")
+
+#This data is a little strange so we'll use a different metric
+
+data_by_gender <- gaming_subdata %>% 
+  group_by(gender) %>% 
+  summarize(
+    avg_addiction = mean(addiction_level, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+ggplot(data_by_gender, aes(x = gender, y = avg_addiction)) +
+  geom_col() + labs(title = "Average Addiction by Gender",
+                    x = "Gender",
+                    y = "Average Addiction Score")
+
+#This data doesn't help
+
+```
+```{r}
+#showing the relationship between gaming hours and happiness levels
+ggplot(gaming_subdata, aes(x = daily_gaming_hours, y = happiness_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Gaming Hours vs Happiness",
+         x = "Daily Gaming Hours",
+         y = "Happiness Score")
+```
+
