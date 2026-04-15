@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
@@ -23,12 +25,19 @@ library(ggplot2)
 
 ```{r}
 library(readxl)
-gaming_data <- gaming_mental_health_10M_40features_csv
-glimpse(gaming_data)
-read.csv("gaming_mentalhealth_10M_40features.csv") # we could not get read.csv to work so we will try again at a later time. For now we brute forced it with a manual import.
+#gaming_data <- gaming_mental_health_10M_40features_csv
+#glimpse(gaming_data)
+#read.csv("gaming_mentalhealth_10M_40features.csv") # we could not get read.csv to work so we will try again at a later time. For now we brute forced it with a manual import.
 # The link to our data for now: https://www.kaggle.com/datasets/sharmajicoder/gaming-and-mental-health?resource=download
+
+#save(gaming_data, file = "smallerdata.Rdata")
+load("smallerdata.Rdata")
+
+#This data is synthetic data about gaming and mental health with a few more categories that pertain to general life and well being. 
 ```
+
 ```{r}
+
 #cleaned it a bit to make my computer run more smoothly
 gaming_data %>%
   summarise(across(everything(), ~ sum(is.na(.))))
@@ -45,6 +54,7 @@ gaming <- gaming_data %>%
 ```
 
 ```{r}
+#The Question asked here is how is addiction and hours played correlated and if there is any "liars" that have more hours played than their addiction level suggest.
 #Checking addiction levels against hours played 
 ggplot(gaming_data, aes(x = daily_gaming_hours, y = addiction_level)) +
   geom_point(alpha = 0.3) +
@@ -102,6 +112,7 @@ ggplot(gaming_data, aes(x = daily_gaming_hours, y = addiction_level, color = sus
 ```
 
 ```{r}
+#From this point on we check the mental well being and physical well being to see any connections 
 gaming_data <- gaming_data %>%
   mutate(
     mental_health_score = (stress_level + anxiety_score + depression_score) / 3
@@ -139,6 +150,7 @@ ggplot(gaming_data, aes(x = daily_gaming_hours, y = depression_score)) +
   geom_point(alpha = 0.3) +
   geom_smooth(method = "lm", se = FALSE)
 ```
+
 ```{r}
 gaming_data <- gaming_data %>%
   mutate(
@@ -163,7 +175,9 @@ ggplot(gaming_data, aes(x = gaming_group, y = mental_health_score, fill = gaming
     x = "Gaming Level",
     y = "Mental Health Score"
   )
+
 ```
+
 ```{r}
 physical_data <- gaming_data %>%
   select(daily_gaming_hours, bmi, exercise_hours, eye_strain_score, back_pain_score) %>%
@@ -194,6 +208,7 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
   labs(title = "Gaming Hours vs Back Pain")
 
 ```
+
 ```{r}
 cor(physical_data$daily_gaming_hours, physical_data$bmi)
 cor(physical_data$daily_gaming_hours, physical_data$exercise_hours)

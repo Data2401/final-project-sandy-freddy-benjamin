@@ -1,0 +1,298 @@
+---
+title: "The Relationship Between Gaming & Mental Health"
+author: "Sandy, Fredy, Benjamin"
+date: "2026-04-14"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+```{r setup, include=FALSE}
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(patchwork)
+
+#uncomment to read csv
+#df <- read.csv("gaming_mental_health_10M_40features.csv")
+
+load("smallerdata.Rdata")
+
+#created a sub dataset based on the variables we need. Use gaming_subdata from now on.
+gaming_subdata <- gaming_data %>%
+  select(age, gender, income, bmi, daily_gaming_hours, weekly_sessions, years_gaming, eye_strain_score, back_pain_score, sleep_hours, exercise_hours, happiness_score, aggression_score, loneliness_score, stress_level, anxiety_score, depression_score, social_interaction_score, addiction_level, toxic_exposure, violent_games_ratio, parental_supervision, microtransactions_spending, competitive_rank)
+
+#renamed gaming_data to gaming for seamless integration into my code
+gaming <- gaming_subdata %>% 
+  sample_n(5000)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+physical_data <- gaming %>%
+  select(daily_gaming_hours, bmi, exercise_hours, eye_strain_score, back_pain_score) %>%
+  drop_na()
+
+```
+
+## Introduction
+
+**Domain Question:**
+How does gaming affect our well-being?
+
+*Sub-question:*
+What are the physical, psychological, & social effects of gaming?
+
+## Data Overview
+* Synthetic dataset
+* Randomized data
+* Thousands of entries (Large dataset)
+
+## Physical Effects of Gaming
+
+Back Pain
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Back Pain") +
+  theme_minimal()
+```
+
+## Physical Effects of Gaming
+
+Eye Strain
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(physical_data, aes(x = daily_gaming_hours, y = eye_strain_score)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Eye Strain") +
+  theme_minimal()
+```
+
+## Physical Effects of Gaming
+
+Exercise Hours
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(physical_data, aes(x = daily_gaming_hours, y = exercise_hours, fill = daily_gaming_hours)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Exercise Hours") +
+  theme_minimal()
+```
+
+## Physical Effects of Gaming
+
+BMI
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(physical_data, aes(x = daily_gaming_hours, y = bmi)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs BMI") +
+  theme_minimal()
+```
+
+## Psychological Effects of Gaming
+
+Addiction
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level)) +
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Gaming Hours vs Addiction Level",
+         x = "Daily Gaming Hours",
+         y = "Addiction Level") +
+  theme_minimal()
+```
+
+## Psychological Effects of Gaming
+
+Stress
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = stress_level)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Stress Level") +
+  theme_minimal()
+```
+
+
+## Psychological Effects of Gaming
+
+Anxiety
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = anxiety_score)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Anxiety Score") +
+  theme_minimal()
+```
+
+## Psychological Effects of Gaming
+
+Depression
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = depression_score)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gaming Hours vs Depression Score") +
+  theme_minimal()
+```
+
+## Psychological Effects of Gaming
+
+Happiness
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = happiness_score)) +
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Gaming Hours vs Happiness Score",
+         x = "Daily Gaming Hours",
+         y = "Happiness Score") +
+  theme_minimal()
+```
+
+## Gaming's Effect on Mental Health
+
+Overall psychological toll of gaming on mental health 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+gaming <- gaming %>%
+  mutate(
+    mental_health_score = (stress_level + anxiety_score + depression_score) / 3
+  )
+
+gaming <- gaming %>%
+  mutate(
+    gaming_group = case_when(
+      daily_gaming_hours < 2 ~ "Low",
+      daily_gaming_hours < 5 ~ "Moderate",
+      TRUE ~ "High"
+    )
+  )
+
+gaming %>%
+  group_by(gaming_group) %>%
+  summarise(
+    avg_stress = mean(stress_level, na.rm = TRUE),
+    avg_anxiety = mean(anxiety_score, na.rm = TRUE),
+    avg_depression = mean(depression_score, na.rm = TRUE)
+  )
+
+ggplot(gaming, aes(x = gaming_group, y = mental_health_score, fill = gaming_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Mental Health by Gaming Level",
+    x = "Gaming Level",
+    y = "Mental Health Score"
+  ) +
+  theme_minimal()
+
+```
+
+## Social Effects of Gaming
+
+Loneliness
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = loneliness_score)) +
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Gaming Hours vs Loneliness Score",
+         x = "Daily Gaming Hours",
+         y = "Loneliness Score") +
+  theme_minimal()
+```
+
+## Social Effects of Gaming
+
+Social Interaction
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+ggplot(gaming, aes(x = daily_gaming_hours, y = social_interaction_score)) +
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Gaming Hours vs Social Interaction Score",
+         x = "Daily Gaming Hours",
+         y = "Social Interaction Score") +
+  theme_minimal()
+```
+
+## Other Metrics
+
+Data By Age
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+data_by_age <- gaming %>%  
+  mutate(age_group = case_when(
+    age < 18 ~ "Under 18",
+    age >= 18 & age <= 25 ~ "18-25",
+    age > 25 ~ "25+"
+  )) %>% 
+  group_by(age_group) %>% 
+  summarize(
+    avg_addiction = mean(addiction_level, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+ggplot(data_by_age, aes(x = age_group, y = avg_addiction)) +
+  geom_col() + 
+  labs(title = "Average Addiction by Age",
+                    x = "Age",
+                    y = "Average Addiction Score") +
+  theme_minimal()
+```
+
+## Other Metrics
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+data_by_gender <- gaming %>% 
+  group_by(gender) %>% 
+  summarize(
+    avg_addiction = mean(addiction_level, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+ggplot(data_by_gender, aes(x = gender, y = avg_addiction)) +
+  geom_col() + 
+  labs(title = "Average Addiction by Gender",
+                    x = "Gender",
+                    y = "Average Addiction Score") +
+  theme_minimal()
+```
+
+## Drawbacks
+
+**Suspicious Reports**
+
+* Underreporting - High hours, low addiction score
+
+* Overreporting - Low hours, high addiction score
+
+If we rule these out, we can focus on consistent behaviors
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+gaming <- gaming %>%
+  mutate(
+    suspicious = case_when(
+      daily_gaming_hours > quantile(daily_gaming_hours, 0.75, na.rm = TRUE) &
+      addiction_level < quantile(addiction_level, 0.25, na.rm = TRUE) ~ "Underreporting",
+
+      daily_gaming_hours < quantile(daily_gaming_hours, 0.25, na.rm = TRUE) &
+      addiction_level > quantile(addiction_level, 0.75, na.rm = TRUE) ~ "Overreporting",
+
+      TRUE ~ "Consistent"
+    )
+  )
+gaming %>%
+  count(suspicious)
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level, color = suspicious)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    title = "Identifying Inconsistent Addiction Reporting",
+    x = "Daily Hours Played",
+    y = "Addiction Level",
+    color = "Classification"
+  ) +
+  theme_minimal()
+```
+
+
