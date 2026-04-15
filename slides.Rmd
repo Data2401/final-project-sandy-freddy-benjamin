@@ -52,10 +52,13 @@ What are the physical, psychological, & social effects of gaming?
 Back Pain
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+# adding questions: Question: Does gaming increase back pain?
 ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Back Pain") +
   theme_minimal()
+# answer to the question: No. Back pain slightly decreases as gaming hours increase, but the effect seems to be very small and likely not meaningful
+#Other possible answer: Surprisingly, the data shows a slight decrease in back pain with more gaming. However, the change is very small, so this relationship is likely weak or due to noise in the data rather than a real effect.
 ```
 
 ## Physical Effects of Gaming
@@ -63,10 +66,12 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
 Eye Strain
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+# Does gaming affect eye strain?
 ggplot(physical_data, aes(x = daily_gaming_hours, y = eye_strain_score)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Eye Strain") +
   theme_minimal()
+# Yes. Eye strain increases as gaming hours increase, most likely due to prolonged screen time. 
 ```
 
 ## Physical Effects of Gaming
@@ -74,10 +79,12 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = eye_strain_score)) +
 Exercise Hours
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+# Does more gaming reduce exercise?
 ggplot(physical_data, aes(x = daily_gaming_hours, y = exercise_hours, fill = daily_gaming_hours)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Exercise Hours") +
   theme_minimal()
+#Yes. Exercise hours slightly decrease as gaming hours increase, indicating a more sedentary lifestyle.
 ```
 
 ## Physical Effects of Gaming
@@ -85,10 +92,12 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = exercise_hours, fill = dai
 BMI
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Does gaming affect BMI?
 ggplot(physical_data, aes(x = daily_gaming_hours, y = bmi)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs BMI") +
   theme_minimal()
+#BMI slightly increases with more gaming, but the effect is very small, suggesting a weak relationship.
 ```
 
 ## Psychological Effects of Gaming
@@ -96,12 +105,14 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = bmi)) +
 Addiction
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Does more gaming increase addiction levels? Is there a postive realtion of addiction and gaming hours?
 ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level)) +
   geom_smooth(method = "lm", se = F) +
   labs(title = "Gaming Hours vs Addiction Level",
          x = "Daily Gaming Hours",
          y = "Addiction Level") +
   theme_minimal()
+# Yes. Addiction levels increase strongly with gaming hours, showing a clear positive relationship.
 ```
 
 ## Psychological Effects of Gaming
@@ -109,6 +120,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level)) +
 Stress
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+# Stress slightly decreases as gaming hours increase, suggesting gaming may help reduce stress, though the effect is small.
 ggplot(gaming, aes(x = daily_gaming_hours, y = stress_level)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Stress Level") +
@@ -121,6 +133,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = stress_level)) +
 Anxiety
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Anxiety increases slightly with more gaming, but the relationship is weak.
 ggplot(gaming, aes(x = daily_gaming_hours, y = anxiety_score)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Anxiety Score") +
@@ -132,6 +145,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = anxiety_score)) +
 Depression
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Depression slightly decreases as gaming hours increase, though the effect is minimal.
 ggplot(gaming, aes(x = daily_gaming_hours, y = depression_score)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Depression Score") +
@@ -143,6 +157,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = depression_score)) +
 Happiness
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Happiness increases with gaming hours, suggesting gaming may have positive emotional effects.
 ggplot(gaming, aes(x = daily_gaming_hours, y = happiness_score)) +
   geom_smooth(method = "lm", se = F) +
   labs(title = "Gaming Hours vs Happiness Score",
@@ -194,6 +209,7 @@ ggplot(gaming, aes(x = gaming_group, y = mental_health_score, fill = gaming_grou
 Loneliness
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Loneliness increases as gaming hours increase, indicating potential social isolation.
 ggplot(gaming, aes(x = daily_gaming_hours, y = loneliness_score)) +
   geom_smooth(method = "lm", se = F) +
   labs(title = "Gaming Hours vs Loneliness Score",
@@ -207,6 +223,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = loneliness_score)) +
 Social Interaction
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+#Social interaction slightly decreases as gaming hours increase, suggesting reduced real-world interaction.
 ggplot(gaming, aes(x = daily_gaming_hours, y = social_interaction_score)) +
   geom_smooth(method = "lm", se = F) +
   labs(title = "Gaming Hours vs Social Interaction Score",
