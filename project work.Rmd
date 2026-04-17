@@ -267,3 +267,152 @@ gaming %>%
   count(suspicious)
 ```
 
+# Looking at some extra stuff
+## Trying some bar graphs. 
+
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(patchwork)
+
+#uncomment to read csv
+#df <- read.csv("gaming_mental_health_10M_40features.csv")
+
+load("smallerdata.Rdata")
+
+#created a sub dataset based on the variables we need. Use gaming_subdata from now on.
+gaming_subdata <- gaming_data %>%
+  select(age, gender, income, bmi, daily_gaming_hours, weekly_sessions, years_gaming, eye_strain_score, back_pain_score, sleep_hours, exercise_hours, happiness_score, aggression_score, loneliness_score, stress_level, anxiety_score, depression_score, social_interaction_score, addiction_level, toxic_exposure, violent_games_ratio, parental_supervision, microtransactions_spending, competitive_rank)
+
+#renamed gaming_data to gaming for seamless integration into my code
+gaming <- gaming_subdata %>% 
+  sample_n(5000)
+```
+
+
+
+
+```{r}
+
+gaming <- gaming %>%
+  mutate(gaming_level = case_when(
+    daily_gaming_hours < 3 ~ "Low",
+    daily_gaming_hours < 6 ~ "Moderate",
+    daily_gaming_hours < 10 ~ "High",
+    TRUE ~ "Extreme"
+  ))
+gaming %>%
+  group_by(gaming_level) %>%
+  summarise(avg_stress = mean(stress_level, na.rm = TRUE)) %>%
+  ggplot(aes(x = gaming_level, y = avg_stress)) +
+  geom_col() +
+  labs(title = "Average Stress by Gaming Level",
+       x = "Gaming Level",
+       y = "Average Stress")
+```
+```{r}
+data_by_age <- gaming %>%  
+  mutate(age_group = case_when(
+    age < 18 ~ "Under 18",
+    age >= 18 & age <= 25 ~ "18-25",
+    age > 25 ~ "25+"
+  )) %>% 
+  group_by(age_group) %>% 
+  summarize(
+    avg_addiction = mean(addiction_level, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+ggplot(data_by_age, aes(x = age_group, y = avg_addiction)) +
+  geom_col() + 
+  labs(title = "Average Addiction by Age",
+                    x = "Age",
+                    y = "Average Addiction Score") +
+  theme_minimal()
+```
+```{r}
+data_parent <- gaming %>%
+  filter(age < 18) %>%  
+  group_by(parental_supervision) %>%
+  summarize(
+    avg_gaming_hours = mean(daily_gaming_hours, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(data_parent, aes(x = parental_supervision, y = avg_gaming_hours)) + 
+  geom_col() + 
+  labs(title = "Average Gaming Hours by Parental Supervision",
+       x = "Parental Supervision",
+       y = "Average Daily Gaming Hours") +
+  theme_minimal()
+
+ggplot(gaming %>% filter(age < 18),
+       aes(x = parental_supervision, y = daily_gaming_hours)) +
+  geom_boxplot() +
+  labs(title = "Gaming Hours Distribution by Parental Supervision",
+       x = "Parental Supervision",
+       y = "Daily Gaming Hours") +
+  theme_minimal()
+
+ggplot(gaming %>% filter(age < 18),
+       aes(x = parental_supervision, y = daily_gaming_hours)) +
+  geom_line() +
+  labs(title = "Gaming Hours Distribution by Parental Supervision",
+       x = "Parental Supervision",
+       y = "Daily Gaming Hours") +
+  theme_minimal()
+
+
+```
+```{r}
+# Just trying many diffrent graphs
+gaming %>%
+  mutate(gaming_level = case_when(
+    daily_gaming_hours < 3 ~ "Low",
+    daily_gaming_hours < 6 ~ "Moderate",
+    daily_gaming_hours < 10 ~ "High",
+    TRUE ~ "Extreme"
+  )) %>%
+  group_by(gaming_level) %>%
+  summarise(
+    loneliness = mean(loneliness_score, na.rm = TRUE),
+    social = mean(social_interaction_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(loneliness, social),
+    names_to = "metric",
+    values_to = "value"
+  ) %>%
+  ggplot(aes(x = gaming_level, y = value, fill = metric)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Social Effects by Gaming Level",
+    x = "Gaming Level",
+    y = "Average Score",
+    fill = "Measure"
+  ) +
+  theme_minimal()
+
+
+gaming %>%
+  group_by(gaming_level) %>%
+  summarise(
+    stress = mean(stress_level, na.rm = TRUE),
+    anxiety = mean(anxiety_score, na.rm = TRUE),
+    depression = mean(depression_score, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = -gaming_level, names_to = "metric", values_to = "value") %>%
+  ggplot(aes(x = gaming_level, y = value, fill = metric)) +
+  geom_col(position = "dodge") +
+  labs(title = "Mental Health by Gaming Level",
+       x = "Gaming Level",
+       y = "Average Score")
+
+```
+
+
+

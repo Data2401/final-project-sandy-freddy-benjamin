@@ -57,8 +57,7 @@ ggplot(physical_data, aes(x = daily_gaming_hours, y = back_pain_score)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Gaming Hours vs Back Pain") +
   theme_minimal()
-# answer to the question: No. Back pain slightly decreases as gaming hours increase, but the effect seems to be very small and likely not meaningful
-#Other possible answer: Surprisingly, the data shows a slight decrease in back pain with more gaming. However, the change is very small, so this relationship is likely weak or due to noise in the data rather than a real effect.
+
 ```
 
 ## Physical Effects of Gaming
@@ -157,7 +156,7 @@ ggplot(gaming, aes(x = daily_gaming_hours, y = depression_score)) +
 Happiness
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
-#Happiness increases with gaming hours, suggesting gaming may have positive emotional effects.
+
 ggplot(gaming, aes(x = daily_gaming_hours, y = happiness_score)) +
   geom_smooth(method = "lm", se = F) +
   labs(title = "Gaming Hours vs Happiness Score",
@@ -179,9 +178,10 @@ gaming <- gaming %>%
 gaming <- gaming %>%
   mutate(
     gaming_group = case_when(
-      daily_gaming_hours < 2 ~ "Low",
-      daily_gaming_hours < 5 ~ "Moderate",
-      TRUE ~ "High"
+      daily_gaming_hours < 3 ~ "Low",
+    daily_gaming_hours < 6 ~ "Moderate",
+    daily_gaming_hours < 10 ~ "High",
+    TRUE ~ "Extreme"
     )
   )
 
