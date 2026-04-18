@@ -265,6 +265,71 @@ ggplot(gamingA, aes(x = whyplay_clean, y = SWL_T, fill = whyplay_clean)) +
   labs(title = "Life Satisfaction by Motivation")
 ```
 
+```{r}
+# Trying other stuff
+
+
+gamingA <- gamingA %>%
+  mutate(
+    anxiety_per_hour = GAD_T / (Hours + 1),
+    life_per_hour = SWL_T / (Hours + 1)
+  )
+
+ggplot(gamingA, aes(x = gaming_level, y = anxiety_per_hour, fill = gaming_level)) +
+  geom_boxplot() +
+  labs(title = "Anxiety per Gaming Hour",
+       x = "Gaming Level",
+       y = "Anxiety per Hour") +
+  theme_classic()
+
+ggplot(gamingA, aes(x = Hours, y = SWL_T, color = whyplay_clean)) +
+  geom_smooth(method = "lm") +
+  labs(title = "Gaming Hours vs Life Satisfaction by Motivation")
+
+gamingA <- gamingA %>%
+  mutate(high_anxiety = ifelse(GAD_T >= 8, 1, 0))
+
+gamingA %>%
+  group_by(gaming_level) %>%
+  summarise(rate = mean(high_anxiety)) %>%
+  ggplot(aes(x = gaming_level, y = rate)) +
+  geom_col() +
+  labs(title = "Proportion of High Anxiety by Gaming Level",
+       y = "Proportion")
+
+gamingA %>%
+  group_by(Residence) %>%
+  summarise(avg_anxiety = mean(GAD_T)) %>%
+  arrange(desc(avg_anxiety)) %>%
+  slice_head(n = 10) %>%
+  ggplot(aes(x = reorder(Residence, avg_anxiety), y = avg_anxiety)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top Countries by Anxiety")
+
+gamingA <- gamingA %>%
+  mutate(hours_group = ntile(Hours, 10))
+
+gamingA %>%
+  group_by(hours_group) %>%
+  summarise(avg_life = mean(SWL_T)) %>%
+  ggplot(aes(x = hours_group, y = avg_life)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Life Satisfaction Across Gaming Intensity")
+
+ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
+  geom_boxplot()
+
+ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
+  geom_boxplot()
+
+ggplot(gamingA, aes(x = Hours, y = SWL_T)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~ Playstyle_clean) +
+  labs(title = "Gaming vs Life Satisfaction by Playstyle")
+```
 
 
 
