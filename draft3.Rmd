@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Code Setup
 
 library(tidyverse)
-gamingA_raw <- read.csv("GamingStudy_data.csv", stringsAsFactors = FALSE, fileEncoding = "latin1")
+gamingA_raw <- read.csv("GamingStudy_data.csv", stringsAsFactors = FALSE)
 names(gamingA_raw)
 str(gamingA_raw)
 summary(gamingA_raw)
@@ -187,27 +187,35 @@ ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+library(ggridges)
+
 # Why people play
-ggplot(gamingA, aes(x = whyplay, y = SWL_T, fill = whyplay)) +
-  geom_boxplot() +
+ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), fill = whyplay_clean)) +
+  geom_density_ridges(alpha = 0.8, color = "white") +
+  scale_fill_brewer(palette = "Set3") +
   labs(
     title = "Life Satisfaction by Motivation for Playing",
     x = "Why Play",
     y = "SWL Score"
   ) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_ridges() +
+  theme(legend.position = "none")
 
 # Playstyle
-ggplot(gamingA, aes(x = Playstyle, y = SPIN_T, fill = Playstyle)) +
-  geom_boxplot() +
+gamingA %>%
+  group_by(Playstyle_clean) %>%
+  summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(Playstyle_clean, avg_spin), y = avg_spin, fill = Playstyle_clean)) +
+  geom_col() +
+  scale_fill_brewer(palette = "Pastel1") +
+  coord_flip() +
   labs(
     title = "Social Anxiety by Playstyle",
     x = "Playstyle",
     y = "SPIN Score"
   ) +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "none")
 
 # Fixing playstyles to see if it makes a diffrence
 
@@ -348,6 +356,24 @@ gamingA %>%
   ) +
   theme_minimal()
 
+gamingA <- gamingA %>%
+  mutate(
+    Playstyle_clean = case_when(
+      
+      str_detect(Playstyle, "Single") ~ "Singleplayer",
+      
+      str_detect(Playstyle, "offline") ~ "Offline Multiplayer",
+      
+      str_detect(Playstyle, "real life friends") ~ "Online with Friends",
+      
+      str_detect(Playstyle, "strangers") ~ "Online with Strangers",
+      
+      str_detect(Playstyle, "acquaintances") ~ "Online Mixed",
+      
+      TRUE ~ "Other"
+    )
+  )
+
 gamingA %>%
   group_by(gaming_level, Playstyle_clean) %>%
   summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
@@ -360,6 +386,22 @@ gamingA %>%
     y = "Playstyle"
   ) +
   theme_minimal()
+
+gamingA <- gamingA %>%
+  mutate(
+    whyplay_clean = case_when(
+      
+      str_detect(whyplay, "fun") ~ "Fun",
+      
+      str_detect(whyplay, "relax") ~ "Relaxation",
+      
+      str_detect(whyplay, "improv") ~ "Improvement",
+      
+      str_detect(whyplay, "win") ~ "Competition",
+      
+      TRUE ~ "Other"
+    )
+  )
 
 ggplot(gamingA, aes(x = GAD_T, y = whyplay_clean, fill = whyplay_clean)) +
   geom_density_ridges(alpha = 0.7) +
@@ -388,18 +430,7 @@ gamingA %>%
     fill = "Avg GAD Score"
   ) + theme_minimal()
 
-gamingA %>%
-  filter(!Degree %in% c("", "None")) %>%
-  group_by(Degree, gaming_level) %>%
-  summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
-  ggplot(aes(x = gaming_level, y = Degree, fill = avg_spin)) +
-  geom_tile() +
-  scale_fill_viridis_c(option = "magma") +
-  labs(
-    title = "Education Level vs Gaming Level",
-    x = "Gaming Level",
-    y = "Education Level"
-  ) + theme_minimal()
+
 ```
 
 
