@@ -110,7 +110,8 @@ ggplot(gamingA, aes(x = gaming_level, y = GAD_T, fill = gaming_level)) +
   labs(
     title = "Anxiety Scores by Gaming Level",
     x = "Gaming Intensity Level",
-    y = "Anxiety Score"
+    y = "Anxiety Score",
+    fill = "Gaming Level"
   ) +
   theme_classic()
 ```
@@ -166,7 +167,7 @@ ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
     y = "Anxiety Score"
   ) +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "none")
 
 gamingA <- gamingA %>%
   mutate(high_anxiety = ifelse(GAD_T >= 8, 1, 0))
@@ -209,11 +210,18 @@ gamingA <- gamingA %>%
 
 ggplot(gamingA, aes(x = whyplay_clean, fill = whyplay_clean)) +
   geom_bar() +
-  labs(title = "Why People Play Games") +
+  labs(
+    title = "Why People Play Games",
+    x = "Gaming Motivation",
+    y = "Number of Gamers",
+    fill = "Gaming Motivation"
+  ) +
   theme_classic()
 ```
 
+
 Why you play and who you play with might matter more than how long you play.
+
 
 ```{r}
 gamingA <- gamingA %>%
@@ -235,16 +243,30 @@ gamingA <- gamingA %>%
   )
 
 ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(
+    title = "Anxiety Score by Gaming Playstyle",
+    x = "Playstyle",
+    y = "Anxiety Score",
+    fill = "Playstyle"
+  ) +
+  theme_classic()
 
 ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(
+    title = "Anxiety Score by Gaming Motivation",
+    x = "Gaming Motivation",
+    y = "Anxiety Score",
+    fill = "Gaming Motivation"
+  ) +
+  theme_classic()
 ```
 
 
 ## Social Effects of Gaming
 
-We compared Social Anxiety scores across different Playstyles to see how who you play with affects your gaming experience.
+We compared social anxiety scores across different playstyles to see how who you play with affects your gaming experience.
 
 ```{r}
 # Social anxiety
@@ -253,7 +275,8 @@ ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
   labs(
     title = "Social Anxiety by Gaming Level",
     x = "Gaming Level",
-    y = "Social Anxiety Score"
+    y = "Social Anxiety Score",
+    fill = "Gaming Motivation"
   ) +
   theme_classic()
 
@@ -276,7 +299,8 @@ gamingA %>%
   labs(
     title = "Social Anxiety by Playstyle",
     x = "Playstyle",
-    y = "Social Anxiety Score"
+    y = "Social Anxiety Score",
+    fill = "Playstyle"
   ) +
   theme_classic() +
   theme(legend.position = "none")
@@ -294,11 +318,11 @@ ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), 
   scale_fill_brewer(palette = "Set3") +
   labs(
     title = "Life Satisfaction by Motivation for Playing",
-    x = "Gaming Motivation",
-    y = "Life Satisfaction Score"
+    x = "Life Satisfaction Score",
+    y = "Gaming Motivation",
+    fill = "Gaming Motivation"
   ) +
-  theme_ridges() +
-  theme(legend.position = "none")
+  theme_ridges() 
 
 # Playstyle
 gamingA %>%
@@ -311,16 +335,17 @@ gamingA %>%
   labs(
     title = "Social Anxiety by Playstyle",
     x = "Playstyle",
-    y = "Social Anxiety Score"
+    y = "Social Anxiety Score",
+    fill = "Playstyle"
   ) +
-  theme_classic() +
-  theme(legend.position = "none")
+  theme_classic()
 
 ggplot(gamingA, aes(x = whyplay_clean, y = SWL_T, fill = whyplay_clean)) +
   geom_boxplot() +
   labs(title = "Life Satisfaction by Motivation for Playing",
     x = "Gaming Motivation",
-    y = "Life Satisfaction Score"
+    y = "Life Satisfaction Score",
+    fill = "Gaming Motivation"
     )
 ```
 
@@ -350,19 +375,18 @@ gamingA %>%
 
 ```
 
-## Conclusion
+## Key Findings
 
-**Key Findings:**
 
-Anxiety: Shows an upward trend in "Extreme" gaming levels.
+**Anxiety:** Shows an upward trend in "Extreme" gaming levels.
 
-Social Context: Playing with strangers correlates with higher Social Anxiety compared to playing with friends.
+**Social Context:** Playing with strangers correlates with higher Social Anxiety compared to playing with friends.
 
-Motivation: Players gaming for "Relaxation" and "Fun" report higher Life Satisfaction than those gaming for "Competition."
+**Motivation:** Players gaming for "Relaxation" and "Fun" report higher Life Satisfaction than those gaming for "Competition."
 
-Final Thoughts: Gaming's effect on well-being depends heavily on how and why you play.
+**Final Thoughts:** Gaming's effect on well-being depends heavily on how and why you play.
 
-**What does it mean?**
+## What does it mean?
 
 Well-being remains stable through moderate gaming, but we see a tipping point in the Extreme category (>30 hours/week) where anxiety begins to rise.
 
@@ -372,14 +396,14 @@ Gamers motivated by fun and relaxation score significantly higher in life satisf
 
 Gaming doesn't affect everyone the same way. Our data suggests the well-being of a gamer is determined by the balance between their gaming hours and their social context.
 
-**What We Suggest**
+## What We Suggest
 
 If you're playing games, you should pay attention to:
 
-How much you play
+*How much you play*
 
-Who you're playing with
+*Who you're playing with*
 
-Why you're playing
+*Why you're playing*
 
 If all three of these reasons align with actions that don't bring you stress then your overall well-being will increase rather than decrease.
