@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Code Setup
 
 library(tidyverse)
-gamingA_raw <- read.csv("GamingStudy_data.csv", stringsAsFactors = FALSE)
+gamingA_raw <- read.csv("GamingStudy_data.csv", stringsAsFactors = FALSE, fileEncoding = "latin1")
 names(gamingA_raw)
 str(gamingA_raw)
 summary(gamingA_raw)
@@ -331,5 +331,75 @@ ggplot(gamingA, aes(x = Hours, y = SWL_T)) +
   labs(title = "Gaming vs Life Satisfaction by Playstyle")
 ```
 
+```{r}
+#install.packages("ggridges")
+library(ggridges)
+
+#adding my code here -Ben
+gamingA %>% 
+  drop_na(Hours, SWL_T) %>%
+  ggplot(aes(x = Hours, y = SWL_T)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(
+    title = "Hours vs Satisfaction",
+    x = "Weekly Gaming hours",
+    y = "SWL Score"
+  ) +
+  theme_minimal()
+
+gamingA %>%
+  group_by(gaming_level, Playstyle_clean) %>%
+  summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = gaming_level, y = Playstyle_clean, fill = avg_spin)) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "magma", name = "Avg SPIN Score") +
+  labs(
+    title = "Social Anxiety vs Social Interaction",
+    x = "Gaming Level",
+    y = "Playstyle"
+  ) +
+  theme_minimal()
+
+ggplot(gamingA, aes(x = GAD_T, y = whyplay_clean, fill = whyplay_clean)) +
+  geom_density_ridges(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    title = "Anxiety by Gaming Reason",
+    x = "GAD Score",
+    y = "Reason"
+  ) + theme_ridges() + 
+  theme(legend.position = "none")
+
+gamingA <- gamingA %>%
+  mutate(age_bracket = cut(Age, breaks = c(18, 25, 35, 45, 66), 
+                           labels = c("18-25", "26-35", "36-45", "46+")))
+gamingA %>%
+  filter(!is.na(age_bracket), !is.na(gaming_level)) %>%
+  group_by(age_bracket, gaming_level) %>%
+  summarise(avg_anxiety = mean(GAD_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = gaming_level, y = age_bracket, fill = avg_anxiety)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "magma") +
+  labs(
+    title = "Age Group vs Gaming Level",
+    x = "Gaming Level",
+    y = "Age Bracket",
+    fill = "Avg GAD Score"
+  ) + theme_minimal()
+
+gamingA %>%
+  filter(!Degree %in% c("", "None")) %>%
+  group_by(Degree, gaming_level) %>%
+  summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = gaming_level, y = Degree, fill = avg_spin)) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "magma") +
+  labs(
+    title = "Education Level vs Gaming Level",
+    x = "Gaming Level",
+    y = "Education Level"
+  ) + theme_minimal()
+```
 
 
