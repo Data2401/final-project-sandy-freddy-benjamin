@@ -379,26 +379,34 @@ gamingA %>%
 ## Key Findings
 
 
-**Anxiety:** Shows an upward trend in "Extreme" gaming levels.
+**Anxiety:** 
+* Shows an upward trend in "Extreme" gaming levels.
 
-**Social Context:** Playing with strangers correlates with higher Social Anxiety compared to playing with friends.
+**Social Context:** 
+* Playing with strangers correlates with higher Social Anxiety compared to playing with friends.
 
-**Motivation:** Players gaming for "Relaxation" and "Fun" report higher Life Satisfaction than those gaming for "Competition."
+**Motivation:** 
+* Players gaming for "Relaxation" and "Fun" report higher Life Satisfaction than those gaming for "Competition."
 
-**Final Thoughts:** Gaming's effect on well-being depends heavily on how and why you play.
+**Final Thoughts:** 
+* Gaming's effect on well-being depends heavily on how and why you play.
 
 ## What does it mean?
 
 * Well-being remains stable through moderate gaming
+
 But in the Extreme category (>30 hours/week) anxiety begins to rise.
 
 * Social Anxiety isn't tied to how much you play but who you play with 
+
 Playing with Friends results in lower social anxiety than playing with strangers or alone.
 
 * Gamers motivated by fun and relaxation are more satisfied
+
 Those driven primarily by competition or escapism experience more anxiety.
 
 * Gaming doesn't affect everyone the same way
+
 Our data suggests the well-being of a gamer is determined by the balance between their gaming hours and their social setting. 
 
 ## What We Suggest
