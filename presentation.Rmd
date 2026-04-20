@@ -225,20 +225,15 @@ Why you play and who you play with might matter more than how long you play.
 
 
 ```{r}
+# Comparing the graphs side by side will commit once and then keep only the better one
 gamingA <- gamingA %>%
   mutate(
     Playstyle_clean = case_when(
-      
       str_detect(Playstyle, "Single") ~ "Singleplayer",
-      
       str_detect(Playstyle, "offline") ~ "Offline Multiplayer",
-      
       str_detect(Playstyle, "real life friends") ~ "Online with Friends",
-      
       str_detect(Playstyle, "strangers") ~ "Online with Strangers",
-      
       str_detect(Playstyle, "acquaintances") ~ "Online Mixed",
-      
       TRUE ~ "Other"
     )
   )
@@ -248,10 +243,13 @@ ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
   labs(
     title = "Anxiety Score by Gaming Playstyle",
     x = "Playstyle",
-    y = "Anxiety Score",
-    fill = "Playstyle"
+    y = "Anxiety Score"
   ) +
-  theme_classic()
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "none"
+  )
 
 ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
   geom_boxplot() +
@@ -262,6 +260,8 @@ ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
     fill = "Gaming Motivation"
   ) +
   theme_classic()
+
+
 ```
 
 
