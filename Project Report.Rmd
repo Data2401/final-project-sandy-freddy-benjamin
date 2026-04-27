@@ -1,0 +1,404 @@
+---
+title: "How Gaming Affects Mental Well-Being"
+author: "Fredy Guevara, Benjamin Lutumba, Sandy Datta"
+date: "2026-04-24"
+output: html_document
+---
+
+## 1. Introduction
+
+Gaming has become a central part of modern entertainment, with millions of individuals engaging in video games daily. While gaming is often associated with relaxation, competition, and social interaction, there is ongoing debate about its impact on mental well-being.
+
+The purpose of this project is to investigate the following question:
+
+How does gaming affect well-being?
+
+To answer this, we focus on three main psychological outcomes:
+
+Anxiety (GAD_T)
+Social Anxiety (SPIN_T)
+Life Satisfaction (SWL_T)
+
+We explore how these outcomes relate to:
+
+Gaming intensity (hours played)
+Gaming motivation (why people play)
+Gaming playstyle (who people play with)
+Demographic factors such as age and residence
+
+By combining data cleaning, grouping techniques, and visualization, this analysis aims to uncover meaningful patterns in how gaming behavior relates to mental health.
+
+Gaming is often viewed as either harmful or beneficial to mental health, but these assumptions are rarely supported by detailed behavioral data. Many people believe that more gaming leads to higher anxiety or lower well-being, but this relationship is not straightforward. This project aims to move beyond that assumption by examining not only how much people play, but also why they play and who they play with. By doing this, we can better understand whether gaming itself affects well-being, or whether other underlying factors drive these patterns.
+Based on common assumptions, we expect that higher levels of gaming may be associated with increased anxiety and social anxiety, and potentially lower life satisfaction. However, we also expect that factors such as gaming motivation and playstyle may play a significant role in shaping these outcomes.
+
+## 2. Packages Required
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+#install.packages(c("tidyverse", "readxl", "ggplot2", "ggridges"))
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(ggridges)
+
+# Code Setup
+gamingA_raw <- read.csv("GamingStudy_data.csv", stringsAsFactors = FALSE)
+names(gamingA_raw)
+str(gamingA_raw)
+
+# Keep variables we want
+gamingA <- gamingA_raw %>%
+  select(
+    Hours, streams, Game, Platform, whyplay, Playstyle,
+    GAD_T, SWL_T, SPIN_T,
+    Narcissism, Residence, Age, Work, Degree, Gender
+  ) %>%
+  drop_na(Hours, GAD_T, SWL_T, SPIN_T)
+
+# Make sure numeric columns are numeric
+gamingA <- gamingA %>%
+  mutate(
+    Hours = as.numeric(Hours),
+    streams = as.numeric(streams),
+    GAD_T = as.numeric(GAD_T),
+    SWL_T = as.numeric(SWL_T),
+    SPIN_T = as.numeric(SPIN_T),
+    Narcissism = as.numeric(Narcissism),
+    Age = as.numeric(Age)
+  )
+
+# Remove impossible or extreme values if needed
+gamingA <- gamingA %>%
+  filter(
+    Age >= 18,
+    Age < 66,
+    Hours >= 0,
+    Hours <= 112
+  )
+
+# Create a total gaming variable
+gamingA <- gamingA %>%
+  mutate(total_gaming = Hours + ifelse(is.na(streams), 0, streams))
+
+# Create gaming groups
+gamingA <- gamingA %>%
+  mutate(
+    gaming_level = case_when(
+      total_gaming < 5 ~ "Low",
+      total_gaming < 15 ~ "Moderate",
+      total_gaming < 30 ~ "High",
+      TRUE ~ "Extreme"
+    ),
+    gaming_level = factor(gaming_level,
+                          levels = c("Low", "Moderate", "High", "Extreme"))
+  )
+```
+
+The packages used in this project support data cleaning, transformation, and visualization. The dataset is imported and processed to ensure all variables are in the correct format and that extreme or unrealistic values are removed.
+
+## 3. Data Preparation
+
+The dataset used in this project comes from a gaming and mental health survey. It includes information about gaming habits, psychological measures, and demographic variables.
+
+Key preparation steps include:
+
+Selecting only relevant variables
+Converting values to numeric format
+Filtering unrealistic values
+Creating a total gaming variable
+Grouping individuals into gaming intensity categories
+
+This ensures the data is clean, consistent, and ready for analysis.
+The data was cleaned to ensure meaningful analysis. Unrealistic values, such as extremely high gaming hours or invalid ages, were removed to prevent distortion. A total gaming variable was created to capture both playing and streaming activity, providing a more complete measure of engagement. Gaming levels were then grouped into categories (Low, Moderate, High, Extreme) to simplify comparisons and allow clearer interpretation of patterns across different intensities.
+These preprocessing steps ensure that the analysis is based on consistent and reliable data, allowing for more meaningful comparisons across different groups.
+
+## 4. Exploratory Data Analysis
+Gaming Habits Overview
+
+```{r}
+# Gaming Hours
+ggplot(gamingA, aes(x = Hours)) +
+  geom_histogram(binwidth = 5, fill = "gray70", color = "black") +
+  labs(
+    title = "Distribution of Weekly Gaming Hours",
+    x = "Hours Played per Week",
+    y = "Number of Gamers"
+  ) +
+  theme_classic()
+```
+
+This graph shows how gaming hours are distributed across the sample. Most individuals fall into lower to moderate gaming ranges, while fewer individuals are in the extreme category.
+
+The skew toward lower and moderate gaming hours suggests that extreme gaming behavior is less common in this dataset. This is important because it means that any patterns observed in extreme gamers may be based on a smaller subset of the population, which can affect how strongly those results should be interpreted.
+
+Psychological Effects of Gaming
+Anxiety vs Gaming Level
+```{r}
+ggplot(gamingA, aes(x = gaming_level, y = GAD_T, fill = gaming_level)) +
+  geom_boxplot() +
+  labs(
+    title = "Anxiety Scores by Gaming Level",
+    x = "Gaming Intensity Level",
+    y = "Anxiety Score",
+    fill = "Gaming Level"
+  ) +
+  theme_classic()
+```
+
+The large overlap between groups suggests that gaming intensity alone is not a strong predictor of anxiety. This indicates that other variables, such as personal characteristics or external life factors, may have a greater influence on anxiety than gaming behavior itself.
+
+Average Anxiety Trends
+
+```{r}
+gamingA <- gamingA %>%
+  mutate(hours_group = ntile(Hours, 10))
+
+agg <- gamingA %>%
+  group_by(hours_group) %>%
+  summarise(
+    anxiety = mean(GAD_T, na.rm = TRUE),
+    life = mean(SWL_T, na.rm = TRUE),
+    social = mean(SPIN_T, na.rm = TRUE)
+  )
+
+ggplot(agg, aes(x = hours_group, y = anxiety)) +
+  geom_col(fill = "gray60") +
+  labs(
+    title = "Average Anxiety by Gaming Hour Group",
+    x = "Gaming Hour Group",
+    y = "Average Anxiety Score"
+  ) +
+  theme_classic()
+```
+
+
+Although there is an upward trend, the increase is gradual rather than steep. This suggests that while gaming may have some association with anxiety, the effect size is relatively small, meaning it may not be practically significant in real-world settings.
+
+Anxiety by Residence
+
+```{r}
+top_res <- gamingA %>%
+  count(Residence, sort = TRUE) %>%
+  slice_head(n = 8) %>%
+  pull(Residence)
+
+gaming_res <- gamingA %>%
+  filter(Residence %in% top_res)
+
+ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
+  geom_boxplot() +
+  labs(
+    title = "Anxiety by Residence",
+    x = "Residence",
+    y = "Anxiety Score"
+  ) +
+  theme_classic() +
+  theme(legend.position = "none")
+
+gamingA <- gamingA %>%
+  mutate(high_anxiety = ifelse(GAD_T >= 8, 1, 0))
+
+gamingA %>%
+  group_by(Residence) %>%
+  summarise(avg_anxiety = mean(GAD_T)) %>%
+  arrange(desc(avg_anxiety)) %>%
+  slice_head(n = 10) %>%
+  ggplot(aes(x = reorder(Residence, avg_anxiety), y = avg_anxiety)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Top Countries by Anxiety",
+    x = "Residence",
+    y = "Anxiety Score")
+```
+
+These graphs show that anxiety varies significantly across locations, indicating that external factors beyond gaming may influence mental health.
+The variation across different countries suggests that cultural, economic, or social factors may influence anxiety levels more than gaming behavior. This highlights an important limitation: gaming cannot be analyzed in isolation, as mental health outcomes are shaped by a wide range of external influences. 
+
+Why Do People Play Games?
+
+```{r}
+gamingA <- gamingA %>%
+  mutate(
+    whyplay_clean = case_when(
+      
+      str_detect(whyplay, "fun") ~ "Fun",
+      
+      str_detect(whyplay, "relax") ~ "Relaxation",
+      
+      str_detect(whyplay, "improv") ~ "Improvement",
+      
+      str_detect(whyplay, "win") ~ "Competition",
+      
+      TRUE ~ "Other"
+    )
+  )
+
+ggplot(gamingA, aes(x = whyplay_clean, fill = whyplay_clean)) +
+  geom_bar() +
+  labs(
+    title = "Why People Play Games",
+    x = "Gaming Motivation",
+    y = "Number of Gamers",
+    fill = "Gaming Motivation"
+  ) +
+  theme_classic()
+```
+
+This graph shows that most players are motivated by fun and relaxation, rather than competition.
+
+While most players report playing for fun or relaxation, these categories also show variation in anxiety levels. This suggests that motivation may influence how gaming impacts mental health. For example, players who use gaming for relaxation may experience lower stress, while those focused on competition may experience higher pressure.
+
+The high concentration of players in the “Fun” and “Relaxation” categories suggests that gaming is primarily used as a form of leisure rather than competition or achievement. This is important because it indicates that, for most individuals, gaming may serve as a coping mechanism rather than a source of stress.
+
+```{r}
+gamingA <- gamingA %>%
+  mutate(
+    Playstyle_clean = case_when(
+      str_detect(Playstyle, "Single") ~ "Singleplayer",
+      str_detect(Playstyle, "offline") ~ "Offline Multiplayer",
+      str_detect(Playstyle, "real life friends") ~ "Online with Friends",
+      str_detect(Playstyle, "strangers") ~ "Online with Strangers",
+      str_detect(Playstyle, "acquaintances") ~ "Online Mixed",
+      TRUE ~ "Other"
+    )
+  )
+
+ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
+  geom_boxplot() +
+  labs(
+    title = "Anxiety Score by Gaming Playstyle",
+    x = "Playstyle",
+    y = "Anxiety Score"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "none"
+  )
+
+ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
+  geom_boxplot() +
+  labs(
+    title = "Anxiety Score by Gaming Motivation",
+    x = "Gaming Motivation",
+    y = "Anxiety Score",
+    fill = "Gaming Motivation"
+  ) +
+  theme_classic()
+```
+These graphs suggest that why people play and who they play with may influence anxiety more than gaming hours alone.
+
+The playstyle results suggest that the social context of gaming plays a significant role in mental health outcomes. Players who engage in more social forms of gaming may experience different levels of anxiety compared to those who play alone. This indicates that gaming is not just an individual activity but also a social one, and its effects depend on the type of interaction involved.
+
+Social Effects of Gaming
+```{r}
+ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
+  geom_boxplot() +
+  labs(
+    title = "Social Anxiety by Gaming Level",
+    x = "Gaming Level",
+    y = "Social Anxiety Score",
+    fill = "Gaming Motivation"
+  ) +
+  theme_classic()
+
+ggplot(agg, aes(x = hours_group, y = social)) +
+  geom_col(fill = "gray60") +
+  labs(
+    title = "Average Social Anxiety by Gaming Hour Group",
+    x = "Gaming Hour Group",
+    y = "Average Social Anxiety Score"
+  ) +
+  theme_classic()
+
+gamingA %>%
+  group_by(Playstyle_clean) %>%
+  summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(Playstyle_clean, avg_spin), y = avg_spin, fill = Playstyle_clean)) +
+  geom_col() +
+  coord_flip() +
+  theme_classic()
+```
+Social anxiety tends to increase with gaming intensity, but the effect is not strong. Playstyle provides more insight, suggesting that social interaction type plays a key role.
+
+Although social anxiety appears to increase with gaming intensity, this does not necessarily mean gaming causes anxiety. It is equally possible that individuals with higher social anxiety are more likely to engage in gaming as a substitute for real-world interaction. This highlights a key limitation of the analysis: the inability to determine direction of causation.
+The relatively weak relationship between gaming intensity and social anxiety suggests that gaming is not a primary driver of social anxiety. Instead, it may act as an outlet for individuals who already experience social difficulties.
+
+Life Satisfaction
+
+```{r}
+ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), fill = whyplay_clean)) +
+  geom_density_ridges(alpha = 0.8, color = "white") +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    title = "Life Satisfaction by Motivation for Playing",
+    x = "Life Satisfaction Score",
+    y = "Gaming Motivation",
+    fill = "Gaming Motivation"
+  ) +
+  theme_ridges() 
+
+ggplot(gamingA, aes(x = whyplay_clean, y = SWL_T, fill = whyplay_clean)) +
+  geom_boxplot() +
+  labs(title = "Life Satisfaction by Motivation for Playing")
+```
+
+Life satisfaction does not vary drastically across gaming levels, but differences appear based on motivation.
+
+Unlike anxiety measures, life satisfaction does not show a strong relationship with gaming intensity. This suggests that even if gaming is associated with increased anxiety in some cases, it does not necessarily reduce overall life satisfaction. This distinction is important because it shows that mental health is multidimensional and cannot be explained by a single measure.
+This contrast between anxiety and life satisfaction suggests that individuals can experience higher levels of anxiety while still maintaining overall life satisfaction. This highlights the complexity of mental health and suggests that gaming may impact different aspects of well-being in different ways.
+
+Demographic Trends
+```{r}
+gamingA <- gamingA %>%
+  mutate(age_bracket = cut(Age, breaks = c(18, 25, 35, 45, 66), 
+                           labels = c("18-25", "26-35", "36-45", "46+")))
+gamingA %>%
+  filter(!is.na(age_bracket), !is.na(gaming_level)) %>%
+  group_by(age_bracket, gaming_level) %>%
+  summarise(avg_anxiety = mean(GAD_T, na.rm = TRUE)) %>%
+  ggplot(aes(x = gaming_level, y = age_bracket, fill = avg_anxiety)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "turbo") +
+  labs(
+    title = "Age Group vs Gaming Level",
+    x = "Gaming Level",
+    y = "Age Bracket",
+    fill = "Avg Anxiety Score"
+  ) + theme_minimal()
+```
+
+This shows that age interacts with gaming intensity, suggesting that life stage may influence how gaming affects well-being.
+
+Different age groups may experience gaming differently due to life stage differences. Younger individuals may use gaming for socialization or identity formation, while older individuals may use it for stress relief or leisure. These differences may influence how gaming relates to anxiety and well-being across age groups.
+
+The patterns observed in this dataset are relatively weak, with many graphs showing overlapping distributions and minimal differences between groups. This suggests that the dataset may have been generated with only weak correlations between variables. As a result, the relationships appear realistic but not strongly predictive. This is consistent with synthetic data design, where variables are loosely connected to simulate real-world variability without enforcing strong causal relationships.
+
+## 5. Summary
+
+This analysis explored how gaming behavior relates to mental well-being using survey data.
+
+Key findings include:
+
+Anxiety increases slightly with gaming intensity
+Social context (who you play with) is an important factor
+Motivation for gaming plays a significant role
+Life satisfaction is not strongly affected by gaming alone
+
+Overall, this analysis shows that gaming does not have a simple or direct impact on well-being. Instead, its effects depend on multiple interacting factors, including motivation, social context, and individual differences. The findings suggest that gaming should not be viewed as inherently harmful or beneficial, but rather as an activity whose impact varies depending on how and why it is used.
+
+Limitations include:
+
+Self-reported data
+Correlation does not imply causation
+External factors such as environment and lifestyle are not fully captured
+
+Future analysis could explore causal relationships or include additional variables such as productivity or long-term outcomes.
+
+
+
+
+
+
+
