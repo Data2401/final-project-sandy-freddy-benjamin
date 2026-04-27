@@ -2,7 +2,13 @@
 title: "How Gaming Affects Mental Well-Being"
 author: "Fredy Guevara, Benjamin Lutumba, Sandy Datta"
 date: "2026-04-24"
-output: html_document
+output:
+  html_document:
+    toc: true               # table of contents
+    toc_float: true         # floating TOC sidebar
+    code_folding: hide      # hides code by default; readers can expand
+    theme: flatly
+    number_sections: true
 ---
 
 ## 1. Introduction
