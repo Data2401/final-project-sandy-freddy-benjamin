@@ -140,8 +140,11 @@ The skew toward lower and moderate gaming hours suggests that extreme gaming beh
 Psychological Effects of Gaming
 Anxiety vs Gaming Level
 ```{r}
+cbf_palette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
+
 ggplot(gamingA, aes(x = gaming_level, y = GAD_T, fill = gaming_level)) +
   geom_boxplot() +
+  scale_fill_manual(values = cbf_palette) +
   labs(
     title = "Anxiety Scores by Gaming Level",
     x = "Gaming Intensity Level",
