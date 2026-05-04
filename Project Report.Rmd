@@ -277,6 +277,7 @@ gamingA <- gamingA %>%
 
 ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Anxiety Score by Gaming Playstyle",
     x = "Playstyle",
