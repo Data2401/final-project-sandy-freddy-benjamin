@@ -349,6 +349,7 @@ gamingA %>%
   summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
   ggplot(aes(x = reorder(Playstyle_clean, avg_spin), y = avg_spin, fill = Playstyle_clean)) +
   geom_col() +
+  scale_fill_viridis_d() +
   coord_flip() +
   theme_classic()
 ```
@@ -363,17 +364,18 @@ Life Satisfaction
 # using ridge plots to see how life satisfaction is spread out for each motivation
 ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), fill = whyplay_clean)) +
   geom_density_ridges(alpha = 0.8, color = "white") +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_viridis_d() +
   labs(
     title = "Life Satisfaction by Motivation for Playing",
     x = "Life Satisfaction Score",
     y = "Gaming Motivation",
     fill = "Gaming Motivation"
   ) +
-  theme_ridges() 
+  theme_ridges()
 # a simple boxplot to double-check the life satisfaction scores against gaming motivation
 ggplot(gamingA, aes(x = whyplay_clean, y = SWL_T, fill = whyplay_clean)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(title = "Life Satisfaction by Motivation for Playing")
 ```
 
@@ -393,7 +395,7 @@ gamingA %>%
   summarise(avg_anxiety = mean(GAD_T, na.rm = TRUE)) %>%
   ggplot(aes(x = gaming_level, y = age_bracket, fill = avg_anxiety)) +
   geom_tile(color = "white") +
-  scale_fill_viridis_c(option = "turbo") +
+  scale_fill_viridis_c() +
   labs(
     title = "Age Group vs Gaming Level",
     x = "Gaming Level",
