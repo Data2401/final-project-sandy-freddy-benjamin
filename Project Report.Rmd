@@ -140,9 +140,15 @@ The skew toward lower and moderate gaming hours suggests that extreme gaming beh
 Psychological Effects of Gaming
 Anxiety vs Gaming Level
 ```{r}
+<<<<<<< HEAD
 # A boxplot to show anxiety scores with the respective gaming level. 
+=======
+cbf_palette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
+
+>>>>>>> 41bea23e2aa34a0bde19fafbed8e39ee52c777b1
 ggplot(gamingA, aes(x = gaming_level, y = GAD_T, fill = gaming_level)) +
   geom_boxplot() +
+  scale_fill_manual(values = cbf_palette) +
   labs(
     title = "Anxiety Scores by Gaming Level",
     x = "Gaming Intensity Level",
@@ -206,6 +212,7 @@ ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
     y = "Anxiety Score"
   ) +
   theme_classic() +
+  scale_fill_viridis_d() +
   theme(legend.position = "none")
 
 #I’m creating a 'High Anxiety' flag here. Basically, if someone's score is 8 or higher, they get a '1' so I can easily count how many people in each group are struggling compared to the rest.
@@ -252,6 +259,7 @@ gamingA <- gamingA %>%
 #a bar chart to see what actually drives people to play
 ggplot(gamingA, aes(x = whyplay_clean, fill = whyplay_clean)) +
   geom_bar() +
+  scale_fill_viridis_d() +
   labs(
     title = "Why People Play Games",
     x = "Gaming Motivation",
