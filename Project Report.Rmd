@@ -293,6 +293,7 @@ gamingA <- gamingA %>%
 # boxplots to compare anxiety levels across different social settings
 ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Anxiety Score by Gaming Playstyle",
     x = "Playstyle",
@@ -306,6 +307,7 @@ ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
 #plotting anxiety scores against the reasons people play to see if gaming for 'Competition' carries more stress than just playing for 'Fun' or 'Relaxation'
 ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Anxiety Score by Gaming Motivation",
     x = "Gaming Motivation",
@@ -323,6 +325,7 @@ Social Effects of Gaming
 #checking if 'hardcore' gamers deal with more social anxiety by comparing SPIN scores across different gaming levels to see if there's a real jump as hours go up
 ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Social Anxiety by Gaming Level",
     x = "Gaming Level",
