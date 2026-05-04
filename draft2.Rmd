@@ -4,7 +4,7 @@ author: "Fredy Guevara"
 date: "2026-04-16"
 output: html_document
 ---
-
+Original dataset work was abandoned due to its synthetic nature and lack of meaningful results. We tried to see if we could get any meaningful results by starting again with recommendations from Dr. Shoemaker, but the results again were not satisfactory.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)

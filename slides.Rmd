@@ -6,6 +6,8 @@ output:
   slidy_presentation: default
   ioslides_presentation: default
 ---
+
+Original dataset work/slides that was abandoned due to its synthetic nature and lack of meaningful results.
 ```{r setup, include=FALSE}
 library(readr)
 library(dplyr)
