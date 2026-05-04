@@ -308,6 +308,7 @@ Social Effects of Gaming
 ```{r}
 ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Social Anxiety by Gaming Level",
     x = "Gaming Level",
