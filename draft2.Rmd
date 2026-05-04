@@ -1,0 +1,495 @@
+---
+title: "draft2"
+author: "Fredy Guevara"
+date: "2026-04-16"
+output: html_document
+---
+Original dataset work was abandoned due to its synthetic nature and lack of meaningful results. We tried to see if we could get any meaningful results by starting again with recommendations from Dr. Shoemaker, but the results again were not satisfactory. 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(patchwork)
+library(broom)
+```
+
+
+```{r}
+# Load dataset
+load("smallerdata.Rdata")
+
+
+# Clean and sample data
+set.seed(2401)
+gaming <- gaming_data %>%
+  select(
+    age, gender, income, bmi, daily_gaming_hours, weekly_sessions,
+    years_gaming, eye_strain_score, back_pain_score, sleep_hours,
+    exercise_hours, happiness_score, aggression_score, loneliness_score,
+    stress_level, anxiety_score, depression_score,
+    social_interaction_score, addiction_level, toxic_exposure,
+    violent_games_ratio, parental_supervision,
+    microtransactions_spending, competitive_rank
+  ) %>%
+  drop_na() %>%
+  slice_sample(n = 500000) %>%
+  mutate(
+    gaming_level = case_when(
+      daily_gaming_hours < 3 ~ "Low",
+      daily_gaming_hours < 6 ~ "Moderate",
+      daily_gaming_hours < 10 ~ "High",
+      TRUE ~ "Extreme"
+    ),
+    gaming_level = factor(gaming_level, levels = c("Low", "Moderate", "High", "Extreme")),
+    
+    age_group = case_when(
+      age < 18 ~ "Under 18",
+      age <= 25 ~ "18-25",
+      age <= 40 ~ "25-40",
+      TRUE ~ "40+"
+    ),
+    age_group = factor(age_group, levels = c("Under 18", "18-25", "25-40", "40+")),
+    
+    mental_health_score = (stress_level + anxiety_score + depression_score) / 3
+  )
+
+
+glimpse(gaming)
+```
+
+# Physical Effects of Gaming
+Does more gaming increase eye strain?
+```{r}
+ggplot(gaming, aes(x = daily_gaming_hours, y = eye_strain_score)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Gaming Hours vs Eye Strain",
+    x = "Daily Gaming Hours",
+    y = "Eye Strain Score"
+  ) +
+  theme_minimal()
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = eye_strain_score)) +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(gaming, aes(x = gaming_level, y = eye_strain_score, fill = gaming_level)) +
+  geom_boxplot()
+
+ggplot(gaming, aes(x = gaming_level, y = eye_strain_score, fill = gaming_level)) +
+  geom_violin()
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = eye_strain_score)) +
+  geom_point(alpha = 0.2) +
+  labs(title = "Gaming Hours vs Eye Strain",
+       x = "Daily Gaming Hours",
+       y = "Eye Strain Score") +
+  theme_minimal()
+
+gaming %>%
+  group_by(gaming_level) %>%
+  summarise(avg_eye_strain = mean(eye_strain_score, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = gaming_level, y = avg_eye_strain)) +
+  geom_col() +
+  labs(title = "Average Eye Strain by Gaming Level",
+       x = "Gaming Level",
+       y = "Average Eye Strain Score") +
+  theme_minimal()
+
+
+
+```
+
+# Can gaming behavior predict depression?
+
+```{r}
+depression_model <- lm(
+  depression_score ~ daily_gaming_hours + sleep_hours +
+    exercise_hours + social_interaction_score + addiction_level,
+  data = gaming
+)
+
+summary(depression_model)
+
+ggplot(gaming, aes(x = depression_score, y = predict(depression_model))) +
+  geom_point(alpha = 0.3) +
+  labs(title = "Actual vs Predicted Depression",
+       x = "Actual",
+       y = "Predicted")
+lm(depression_score ~ loneliness_score + social_interaction_score + addiction_level, data = gaming)
+```
+# Trying to detect high addiction users
+
+```{r}
+gaming <- gaming %>%
+  mutate(high_addiction = ifelse(addiction_level > 7, 1, 0))
+
+model_addiction <- glm(
+  high_addiction ~ daily_gaming_hours + sleep_hours + loneliness_score,
+  data = gaming,
+  family = "binomial"
+)
+
+summary(model_addiction)
+
+```
+# gaming -> sleep -> depression
+```{r}
+model_sleep <- lm(sleep_hours ~ daily_gaming_hours, data = gaming)
+model_depression <- lm(depression_score ~ sleep_hours, data = gaming)
+
+summary(model_sleep)
+summary(model_depression)
+```
+ 
+# Clustering Gamers
+```{r}
+cluster_data <- gaming %>%
+  select(daily_gaming_hours, addiction_level, loneliness_score, sleep_hours) %>%
+  scale()
+
+set.seed(123)
+kmeans_result <- kmeans(cluster_data, centers = 3)
+
+gaming$cluster <- as.factor(kmeans_result$cluster)
+
+gaming <- gaming %>%
+  mutate(cluster_label = case_when(
+    cluster == 1 ~ "Isolated Casual",
+    cluster == 2 ~ "Healthy Casual",
+    cluster == 3 ~ "High Risk"
+  ))
+
+gaming$cluster_label <- factor(
+  gaming$cluster_label,
+  levels = c("Healthy Casual", "Isolated Casual", "High Risk")
+)
+
+gaming %>%
+  group_by(cluster) %>%
+  summarise(
+    avg_hours = mean(daily_gaming_hours),
+    avg_addiction = mean(addiction_level),
+    avg_sleep = mean(sleep_hours),
+    avg_loneliness = mean(loneliness_score)
+  )
+
+
+ggplot(gaming, aes(x = daily_gaming_hours, y = addiction_level, color = cluster_label)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Gamer Clusters",
+       x = "Daily Gaming Hours",
+       y = "Addiction Level",
+       color = "Gamer Type") +
+  theme_minimal()
+```
+
+# How does mental health vary across gaming behavior?
+
+```{r}
+#grouped bar chart
+gaming %>%
+  group_by(gaming_level) %>%
+  summarise(
+    Anxiety = mean(anxiety_score),
+    Depression = mean(depression_score),
+    Stress = mean(stress_level),
+    Happiness = mean(happiness_score)
+  ) %>%
+  pivot_longer(-gaming_level) %>%
+  ggplot(aes(x = gaming_level, y = value, fill = name)) +
+  geom_col(position = "dodge") +
+  labs(title = "Mental Health by Gaming Level",
+       x = "Gaming Level",
+       y = "Average Score",
+       fill = "Metric") +
+  theme_minimal()
+#The average levels of anxiety, depression, stress, and happiness are nearly identical across all gaming levels. This suggests that gaming time does not significantly impact overall mental health in this dataset.
+
+#What this suggests about the data: The lack of variation across groups may indicate that the dataset has weak or no true relationship between gaming and mental health. This could be due to the data being synthetic or generated with limited correlation between variables. In real-world data, we would typically expect at least small differences between groups.
+
+
+#Distribution
+ggplot(gaming, aes(x = depression_score)) +
+  geom_histogram() +
+  facet_wrap(~ gaming_level)
+# The distributions of depression scores remain nearly identical across all gaming levels, with similar centers and spreads. This suggests that increased gaming time does not significantly impact depression in this dataset.
+
+# Boxplot
+ggplot(gaming, aes(x = gaming_level, y = depression_score, fill = gaming_level)) +
+  geom_boxplot()
+
+#The boxplots show very similar medians and spreads across all gaming levels, indicating consistent depression levels regardless of gaming intensity.
+
+#What this suggests about the data: The uniform spread across categories suggests that depression scores may have been generated independently of gaming behavior. This is a common pattern in synthetic datasets where variables are not strongly linked unless explicitly modeled.
+
+# Cluster comparison
+ggplot(gaming, aes(x = cluster_label, y = depression_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#The clusters show clearer differences in depression scores compared to gaming levels.
+
+#What this suggests about the data: This indicates that meaningful variation exists in the dataset, but it is captured through combinations of variables rather than a single variable like gaming time. This supports the idea that the dataset may contain multivariate structure, even if individual relationships are weak.
+
+# Density Plot
+ggplot(gaming, aes(x = depression_score, fill = gaming_level)) +
+  geom_density(alpha = 0.4)
+
+
+#Density Plot option 2
+ggplot(gaming, aes(x = depression_score)) +
+  geom_density(fill = "steelblue", alpha = 0.6) +
+  facet_wrap(~ gaming_level) +
+  labs(title = "Depression Distribution by Gaming Level",
+       x = "Depression Score",
+       y = "Density") +
+  theme_minimal()
+
+#Density Plot only Outline
+ggplot(gaming, aes(x = depression_score, color = gaming_level)) +
+  geom_density(size = 1) +
+  labs(title = "Depression Distribution by Gaming Level",
+       x = "Depression Score",
+       y = "Density") +
+  theme_minimal()
+
+#Histogram
+ggplot(gaming, aes(x = depression_score)) +
+  geom_histogram(binwidth = 1, fill = "skyblue") +
+  facet_wrap(~ gaming_level) +
+  labs(title = "Depression Scores by Gaming Level",
+       x = "Depression Score",
+       y = "Count") +
+  theme_minimal()
+
+# Addiction classification probablity 
+ggplot(gaming, aes(x = daily_gaming_hours, y = high_addiction)) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"))
+
+#Bar chart
+
+
+coef_df <- tidy(model_addiction) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(odds_ratio = exp(estimate))
+
+ggplot(coef_df, aes(x = term, y = odds_ratio)) +
+  geom_col() +
+  labs(title = "Effect on High Addiction Risk",
+       x = "Variable",
+       y = "Odds Ratio") +
+  theme_minimal()
+
+#The analysis shows that gaming time does not significantly impact mental health outcomes such as depression, anxiety, or stress. However, it is strongly associated with addiction risk. The consistency across mental health measures suggests that these variables may have been generated independently of gaming behavior, which is common in synthetic datasets. In contrast, addiction appears to have been explicitly modeled to depend on gaming time. This highlights a key limitation of the dataset, where some relationships are realistic while others lack meaningful variation.
+```
+
+# How does gaming relate to physical health outcomes?
+
+```{r}
+#Boxplot
+ggplot(gaming, aes(x = gaming_level, y = eye_strain_score, fill = gaming_level)) +
+  geom_boxplot()
+
+# Violin plot
+ggplot(gaming, aes(x = gaming_level, y = eye_strain_score, fill = gaming_level)) +
+  geom_violin()
+
+#Histogram by gaming level
+ggplot(gaming, aes(x = eye_strain_score)) +
+  geom_histogram(binwidth = 1) +
+  facet_wrap(~ gaming_level)
+
+#Heatmap
+gaming %>%
+  group_by(gaming_level) %>%
+  summarise(
+    eye = mean(eye_strain_score),
+    sleep = mean(sleep_hours),
+    exercise = mean(exercise_hours)
+  ) %>%
+  pivot_longer(-gaming_level) %>%
+  ggplot(aes(x = name, y = gaming_level, fill = value)) +
+  geom_tile()
+
+#sleep vs gaming
+ggplot(gaming, aes(x = gaming_level, y = sleep_hours, fill = gaming_level)) +
+  geom_boxplot()
+#Sleep duration appears very similar across all gaming levels, with only small differences in median and spread.
+
+#What this suggests about the data: In real-world scenarios, higher gaming time is often associated with reduced sleep. The lack of a clear trend here suggests that sleep_hours may not be strongly linked to gaming behavior in this dataset. This could indicate that the data is synthetic or that relationships between variables were not fully modeled.
+
+#Cluster physical comparison
+ggplot(gaming, aes(x = cluster_label, y = sleep_hours, fill = cluster_label)) +
+  geom_boxplot()
+```
+
+# How does gaming behavior relate to social well-being?
+
+```{r}
+#loneliness vs cluster
+ggplot(gaming, aes(x = cluster_label, y = loneliness_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#social interaction vs gaming level
+ggplot(gaming, aes(x = gaming_level, y = social_interaction_score, fill = gaming_level)) +
+  geom_boxplot()
+
+# Density plot
+ggplot(gaming, aes(x = loneliness_score, fill = gaming_level)) +
+  geom_density(alpha = 0.4)
+
+#Parental supervision
+gaming %>%
+  filter(age < 18) %>%
+  ggplot(aes(x = parental_supervision, y = daily_gaming_hours)) +
+  geom_smooth()
+
+# Cluster social comparison
+ggplot(gaming, aes(x = cluster_label, y = social_interaction_score, fill = cluster_label)) +
+  geom_boxplot()
+```
+
+Across physical and social measures, there is a consistent pattern of minimal variation between gaming levels. This suggests that many lifestyle and well-being variables in the dataset are weakly correlated with gaming behavior. While this simplifies analysis, it also limits the ability to draw realistic conclusions. In contrast, addiction shows a clear and strong relationship with gaming time, indicating that only certain variables were designed to reflect meaningful dependencies.
+
+I could not find any correaltions really only with addiction and gaming hours maybe some with the cluster and loneliness: I am going to try more things in the following:
+
+```{r}
+library(corrplot)
+
+num_data <- gaming %>%
+  select(
+    daily_gaming_hours, sleep_hours, exercise_hours,
+    depression_score, anxiety_score, stress_level,
+    loneliness_score, social_interaction_score,
+    addiction_level, eye_strain_score, back_pain_score
+  )
+
+cor_matrix <- cor(num_data)
+
+corrplot(cor_matrix, method = "color", type = "upper")
+ggplot(gaming, aes(x = daily_gaming_hours, y = sleep_hours)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm")
+
+gaming %>%
+  mutate(hour_bin = cut(daily_gaming_hours, breaks = 10)) %>%
+  group_by(hour_bin) %>%
+  summarise(
+    avg_sleep = mean(sleep_hours),
+    avg_depression = mean(depression_score)
+  ) %>%
+  ggplot(aes(x = hour_bin, y = avg_sleep, group = 1)) +
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+library(GGally)
+
+GGally::ggpairs(
+  gaming %>%
+    select(daily_gaming_hours, sleep_hours, depression_score)
+)
+
+gaming %>%
+  group_by(cluster_label) %>%
+  summarise(
+    avg_hours = mean(daily_gaming_hours),
+    avg_sleep = mean(sleep_hours),
+    avg_depression = mean(depression_score),
+    avg_loneliness = mean(loneliness_score)
+  )
+
+ggplot(gaming, aes(x = cluster_label, y = sleep_hours, fill = cluster_label)) +
+  geom_boxplot()
+```
+
+# Cluster analysis 
+The clustering results reveal meaningful behavioral groupings that are not captured by gaming level alone. While gaming hours clearly separate the “High Risk” group from the others, loneliness is the key factor distinguishing the two low-gaming clusters. Interestingly, mental health indicators such as depression remain nearly constant across all clusters, suggesting that these variables were generated independently of behavioral factors. This indicates that the dataset contains limited inter-variable dependency, with only a few strong relationships such as gaming and addiction.
+
+What WAS modeled:
+gaming → addiction
+clusters based on mixed variables
+What was NOT modeled:
+gaming → mental health
+gaming → sleep
+gaming → social (directly)
+
+#Limitations & Data Insights
+
+The dataset creates the illusion of complexity through many variables, but only a small number of meaningful relationships actually exist. Most variables are distributed independently, which explains why many visualizations appear flat.
+
+Since this dataset is synthetic, it doesn’t behave exactly like real-world data. While some relationships show up clearly, like the strong link between gaming hours and addiction, most other variables (mental health, physical health, and social factors) don’t really change much across different gaming levels.
+
+This suggests that a lot of the variables were generated separately rather than being strongly connected. Because of that, many of the graphs look flat or very similar, even when we might expect differences.
+
+However, when looking at multiple variables together (like in the clustering analysis), some patterns do appear. For example, groups were more clearly separated by things like loneliness and gaming intensity rather than mental health scores alone.
+
+Overall, the dataset is useful for practicing analysis and modeling, but it has limitations when it comes to showing realistic cause-and-effect relationships.
+
+# Just using clusters
+
+```{r}
+# Cluster vs Mental Health
+gaming %>%
+  group_by(cluster_label) %>%
+  summarise(
+    Anxiety = mean(anxiety_score),
+    Depression = mean(depression_score),
+    Stress = mean(stress_level),
+    Happiness = mean(happiness_score)
+  ) %>%
+  pivot_longer(-cluster_label) %>%
+  ggplot(aes(x = cluster_label, y = value, fill = name)) +
+  geom_col(position = "dodge") +
+  labs(title = "Mental Health by Gamer Type",
+       x = "Gamer Type",
+       y = "Average Score")
+
+#Boxplot
+ggplot(gaming, aes(x = cluster_label, y = depression_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#Mental health spread
+ggplot(gaming, aes(x = depression_score, fill = cluster_label)) +
+  geom_density(alpha = 0.4)
+
+# eye strain by cluster
+ggplot(gaming, aes(x = cluster_label, y = eye_strain_score, fill = cluster_label)) +
+  geom_boxplot() +
+  labs(title = "Eye Strain by Gamer Type")
+
+#back pain
+ggplot(gaming, aes(x = cluster_label, y = back_pain_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#sleep
+ggplot(gaming, aes(x = cluster_label, y = sleep_hours, fill = cluster_label)) +
+  geom_boxplot()
+
+#loneliness 
+ggplot(gaming, aes(x = cluster_label, y = loneliness_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#social interation
+ggplot(gaming, aes(x = cluster_label, y = social_interaction_score, fill = cluster_label)) +
+  geom_boxplot()
+
+#toxic exposure
+ggplot(gaming, aes(x = cluster_label, y = toxic_exposure, fill = cluster_label)) +
+  geom_boxplot()
+
+
+# Profile for each gamer type
+cluster_summary <- gaming %>%
+  group_by(cluster_label) %>%
+  summarise(
+    Gaming = mean(daily_gaming_hours),
+    Loneliness = mean(loneliness_score),
+    Sleep = mean(sleep_hours),
+    Addiction = mean(addiction_level)
+  ) %>%
+  pivot_longer(-cluster_label)
+
+ggplot(cluster_summary, aes(x = name, y = value, fill = cluster_label)) +
+  geom_col(position = "dodge")
+```
+
