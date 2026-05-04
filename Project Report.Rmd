@@ -291,6 +291,7 @@ ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
 
 ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
   labs(
     title = "Anxiety Score by Gaming Motivation",
     x = "Gaming Motivation",
