@@ -202,6 +202,7 @@ ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
     y = "Anxiety Score"
   ) +
   theme_classic() +
+  scale_fill_viridis_d() +
   theme(legend.position = "none")
 
 gamingA <- gamingA %>%
