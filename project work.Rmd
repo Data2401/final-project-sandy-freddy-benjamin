@@ -5,7 +5,7 @@ output:
   html_document:
     df_print: paged
 ---
-Original dataset work was abandoned due to its synthetic nature and lack of meaningful results.
+Original dataset work was abandoned due to its synthetic nature and lack of meaningful results. 
 
 ```{r}
 library(tidyverse)
