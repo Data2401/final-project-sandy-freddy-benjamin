@@ -140,6 +140,7 @@ The skew toward lower and moderate gaming hours suggests that extreme gaming beh
 Psychological Effects of Gaming
 Anxiety vs Gaming Level
 ```{r}
+# A boxplot to show anxiety scores with the respective gaming level. 
 ggplot(gamingA, aes(x = gaming_level, y = GAD_T, fill = gaming_level)) +
   geom_boxplot() +
   labs(
@@ -156,9 +157,11 @@ The large overlap between groups suggests that gaming intensity alone is not a s
 Average Anxiety Trends
 
 ```{r}
+#A filter was used to make the max 10 hours
 gamingA <- gamingA %>%
   mutate(hours_group = ntile(Hours, 10))
 
+# Was used to make a new group with the averages of anxiety, life, and social
 agg <- gamingA %>%
   group_by(hours_group) %>%
   summarise(
@@ -167,6 +170,7 @@ agg <- gamingA %>%
     social = mean(SPIN_T, na.rm = TRUE)
   )
 
+# A bar graph to compare average anxiety with the amount of hours people play.
 ggplot(agg, aes(x = hours_group, y = anxiety)) +
   geom_col(fill = "gray60") +
   labs(
@@ -183,14 +187,17 @@ Although there is an upward trend, the increase is gradual rather than steep. Th
 Anxiety by Residence
 
 ```{r}
+# To sort for the top residence 
 top_res <- gamingA %>%
   count(Residence, sort = TRUE) %>%
   slice_head(n = 8) %>%
   pull(Residence)
 
+# A filter for the residence
 gaming_res <- gamingA %>%
   filter(Residence %in% top_res)
 
+# A box plot for the anxiety scores with the top residences
 ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
   geom_boxplot() +
   labs(
@@ -201,9 +208,11 @@ ggplot(gaming_res, aes(x = Residence, y = GAD_T, fill = Residence)) +
   theme_classic() +
   theme(legend.position = "none")
 
+#I’m creating a 'High Anxiety' flag here. Basically, if someone's score is 8 or higher, they get a '1' so I can easily count how many people in each group are struggling compared to the rest.
 gamingA <- gamingA %>%
   mutate(high_anxiety = ifelse(GAD_T >= 8, 1, 0))
 
+#Pulling the top 10 countries with the highest average anxiety scores and flipping the chart so the names are easy to read at a glance.
 gamingA %>%
   group_by(Residence) %>%
   summarise(avg_anxiety = mean(GAD_T)) %>%
@@ -224,6 +233,7 @@ The variation across different countries suggests that cultural, economic, or so
 Why Do People Play Games?
 
 ```{r}
+#Cleaned up the messy survey answers for 'why people play' by grouping them into five simple buckets like 'Fun' or 'Competition' so the charts could be more easily understood
 gamingA <- gamingA %>%
   mutate(
     whyplay_clean = case_when(
@@ -239,7 +249,7 @@ gamingA <- gamingA %>%
       TRUE ~ "Other"
     )
   )
-
+#a bar chart to see what actually drives people to play
 ggplot(gamingA, aes(x = whyplay_clean, fill = whyplay_clean)) +
   geom_bar() +
   labs(
@@ -258,6 +268,8 @@ While most players report playing for fun or relaxation, these categories also s
 The high concentration of players in the “Fun” and “Relaxation” categories suggests that gaming is primarily used as a form of leisure rather than competition or achievement. This is important because it indicates that, for most individuals, gaming may serve as a coping mechanism rather than a source of stress.
 
 ```{r}
+#tidying up the 'Playstyle' descriptions to group people into clear categories,so we can 
+# see if the social side of gaming changes their anxiety scores
 gamingA <- gamingA %>%
   mutate(
     Playstyle_clean = case_when(
@@ -270,6 +282,7 @@ gamingA <- gamingA %>%
     )
   )
 
+# boxplots to compare anxiety levels across different social settings
 ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
   geom_boxplot() +
   labs(
@@ -282,7 +295,7 @@ ggplot(gamingA, aes(x = Playstyle_clean, y = GAD_T, fill = Playstyle_clean)) +
     axis.text.x = element_text(angle = 30, hjust = 1),
     legend.position = "none"
   )
-
+#plotting anxiety scores against the reasons people play to see if gaming for 'Competition' carries more stress than just playing for 'Fun' or 'Relaxation'
 ggplot(gamingA, aes(x = whyplay_clean, y = GAD_T, fill = whyplay_clean)) +
   geom_boxplot() +
   labs(
@@ -299,6 +312,7 @@ The playstyle results suggest that the social context of gaming plays a signific
 
 Social Effects of Gaming
 ```{r}
+#checking if 'hardcore' gamers deal with more social anxiety by comparing SPIN scores across different gaming levels to see if there's a real jump as hours go up
 ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
   geom_boxplot() +
   labs(
@@ -309,6 +323,7 @@ ggplot(gamingA, aes(x = gaming_level, y = SPIN_T, fill = gaming_level)) +
   ) +
   theme_classic()
 
+#visualizing how social anxiety shifts across ten different 'hour groups' to see if there’s a steady climb in anxiety as people spend more time gaming
 ggplot(agg, aes(x = hours_group, y = social)) +
   geom_col(fill = "gray60") +
   labs(
@@ -318,6 +333,7 @@ ggplot(agg, aes(x = hours_group, y = social)) +
   ) +
   theme_classic()
 
+#ranking different playstyles by their average social anxiety scores with a sideways bargraph
 gamingA %>%
   group_by(Playstyle_clean) %>%
   summarise(avg_spin = mean(SPIN_T, na.rm = TRUE)) %>%
@@ -334,6 +350,7 @@ The relatively weak relationship between gaming intensity and social anxiety sug
 Life Satisfaction
 
 ```{r}
+# using ridge plots to see how life satisfaction is spread out for each motivation
 ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), fill = whyplay_clean)) +
   geom_density_ridges(alpha = 0.8, color = "white") +
   scale_fill_brewer(palette = "Set3") +
@@ -344,7 +361,7 @@ ggplot(gamingA, aes(x = SWL_T, y = reorder(whyplay_clean, SWL_T, FUN = median), 
     fill = "Gaming Motivation"
   ) +
   theme_ridges() 
-
+# a simple boxplot to double-check the life satisfaction scores against gaming motivation
 ggplot(gamingA, aes(x = whyplay_clean, y = SWL_T, fill = whyplay_clean)) +
   geom_boxplot() +
   labs(title = "Life Satisfaction by Motivation for Playing")
