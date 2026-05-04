@@ -246,6 +246,7 @@ gamingA <- gamingA %>%
 
 ggplot(gamingA, aes(x = whyplay_clean, fill = whyplay_clean)) +
   geom_bar() +
+  scale_fill_viridis_d() +
   labs(
     title = "Why People Play Games",
     x = "Gaming Motivation",
